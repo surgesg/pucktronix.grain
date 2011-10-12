@@ -71,9 +71,9 @@ void Phaser::Range(float fMin, float fMax){
 }
 
 void Phaser::Rate(float rate){
-	rate = rate * 10;
+	rate = rate;
 	_lfoInc = 2.f * F_PI * (rate / SR);	
-	_rate = rate * 0.1;
+	_rate = rate;
 }
 
 void Phaser::Feedback(float fb){
@@ -92,17 +92,16 @@ float Phaser::Update(float inSamp){
 		_lfoPhase -= F_PI * 2.f;
 	
 	//update filter coeffs
-	for(int i = 0; i < 6; i++)
+	for(int i = 0; i < NUM_STAGES; i++)
 		_alps[i].Delay(d);
 	
-	// calculate output
-	float y = _alps[0].Update(
-				_alps[1].Update(
-				 _alps[2].Update(
-				   _alps[3].Update(
-					_alps[4].Update(
-					 _alps[5].Update(inSamp + _zm1 * _fb))))));
-	_zm1 = y; // some saturation right here?
+	// calculate output - converted this to a loop for cleaner code
+	// unwrap later for speed?
+	float y = inSamp + _zm1 * _fb;
+	for(int i = 0; i < NUM_STAGES; i++){
+		y = _alps[i].Update(y);
+	}	
+	_zm1 = tanh(y); // some saturation right here?
 
 	return inSamp + y * _depth;
 }
@@ -171,7 +170,7 @@ void Phaser::getParameterDisplay (VstInt32 index, char* text)
 //-----------------------------------------------------------------------------------------
 void Phaser::getParameterLabel (VstInt32 index, char* label)
 {
-	vst_strncpy (label, "dB", kVstMaxParamStrLen);
+	vst_strncpy (label, "%", kVstMaxParamStrLen);
 }
 
 //------------------------------------------------------------------------

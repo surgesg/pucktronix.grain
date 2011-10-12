@@ -15,11 +15,14 @@
 
 #define SR 44100.f // update this to get SR from host
 #define F_PI 3.14159f
-
+#define NUM_STAGES 12
 #include "public.sdk/source/vst2.x/audioeffectx.h"
 
 //-------------------------------------------------------------------------------------------------------
-
+/* todo:
+	mix an amount of noise in with lfo
+	variable # of allpass stages?
+*/
 enum
 {
 	// Global
@@ -76,7 +79,7 @@ public:
 	virtual VstInt32 getVendorVersion ();
 
 protected:
-	AllpassDelay _alps[6];
+	AllpassDelay _alps[NUM_STAGES]; // changed from 6 to 12 stages
 	
 	float _dmin, _dmax;
 	float _fb;
