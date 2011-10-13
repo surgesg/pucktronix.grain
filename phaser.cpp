@@ -51,6 +51,8 @@ Phaser::Phaser (audioMasterCallback audioMaster)
 	_depth = 1.0;
 	_zm1 = 0.f;
 	
+	num_stages = 12;
+	
 	Range(440.f, 1600.f);
 	Rate(0.5);
 	_rate = 0.5;
@@ -84,6 +86,7 @@ void Phaser::Depth(float depth){
 }
 
 float Phaser::Update(float inSamp){
+	
 	// update phaser sweep lfo
 	float d = _dmin + (_dmax - _dmin) * ((sin(_lfoPhase) + 1.f) / 2.f);
 	_lfoPhase += _lfoInc;
@@ -91,18 +94,24 @@ float Phaser::Update(float inSamp){
 		_lfoPhase -= F_PI * 2.f;
 	
 	//update filter coeffs
-	for(int i = 0; i < NUM_STAGES; i++)
+	for(int i = 0; i < num_stages; i++)
 		_alps[i].Delay(d);
 	
 	// calculate output - converted this to a loop for cleaner code
 	// unwrap later for speed?
 	float y = inSamp + _zm1 * _fb;
-	for(int i = 0; i < NUM_STAGES; i++){
+	for(int i = 0; i < num_stages; i++){
 		y = _alps[i].Update(y);
 	}	
 	_zm1 = tanh(y); // some saturation right here?
 
 	return inSamp + y * _depth;
+}
+
+void Phaser::NumStages(int num){
+	if (num != num_stages){
+		num_stages = num;
+	}
 }
 
 void Phaser::setProgramName (char* name)
@@ -129,6 +138,9 @@ void Phaser::setParameter (VstInt32 index, float value)
 		case kDepth:
 			Depth(value);
 			break;
+		case kNumStages:
+			NumStages((int)(value * 128));
+			break;
 	}
 }
 //-----------------------------------------------------------------------------------------
@@ -141,6 +153,9 @@ float Phaser::getParameter (VstInt32 index)
 			return _fb;
 		case kDepth:
 			return _depth;
+		case kNumStages:
+			return num_stages / 128.f;
+			break;
 	}
 }
 
@@ -156,6 +171,9 @@ void Phaser::getParameterName (VstInt32 index, char* label)
 			break;
 		case kDepth:
 			vst_strncpy (label, "Depth", kVstMaxParamStrLen);
+			break;
+		case kNumStages:
+			vst_strncpy (label, "Stages", kVstMaxParamStrLen);
 			break;
 	}
 }
@@ -173,6 +191,9 @@ void Phaser::getParameterDisplay (VstInt32 index, char* text)
 		case kDepth:
 			float2string(_depth, text, kVstMaxParamStrLen);
 			break;
+		case kNumStages:
+			int2string(num_stages, text, kVstMaxParamStrLen);
+			break;
 	}
 }
 
@@ -188,6 +209,9 @@ void Phaser::getParameterLabel (VstInt32 index, char* label)
 			break;
 		case kDepth:
 			vst_strncpy (label, "%", kVstMaxParamStrLen);
+			break;
+		case kNumStages:
+			vst_strncpy (label, "Stages", kVstMaxParamStrLen);
 			break;
 	}
 }

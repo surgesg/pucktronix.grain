@@ -15,7 +15,6 @@
 
 #define SR 44100.f // update this to get SR from host
 #define F_PI 3.14159f
-#define NUM_STAGES 12
 #include "public.sdk/source/vst2.x/audioeffectx.h"
 
 //-------------------------------------------------------------------------------------------------------
@@ -32,6 +31,7 @@ enum
 	kRate = 0,
 	kFeedBack,
 	kDepth,
+	kNumStages,
 	kNumParams
 };
 
@@ -56,7 +56,9 @@ public:
 	void Rate(float rate);
 	void Feedback(float fb);
 	void Depth(float depth);
+	void NumStages(int num);
 	float Update(float inSamp);
+	bool ChangeStages;
 	
 	// Processing
 	virtual void processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames);
@@ -79,7 +81,7 @@ public:
 	virtual VstInt32 getVendorVersion ();
 
 protected:
-	AllpassDelay _alps[NUM_STAGES]; // changed from 6 to 12 stages
+	AllpassDelay _alps[128]; // dynamic
 	
 	float _dmin, _dmax;
 	float _fb;
@@ -87,6 +89,7 @@ protected:
 	float _lfoInc;
 	float _rate;
 	float _depth;
+	int num_stages;
 	
 	float _zm1;
 	char programName[kVstMaxProgNameLen + 1];
