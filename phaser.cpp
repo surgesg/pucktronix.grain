@@ -102,7 +102,13 @@ float Phaser::Update(float inSamp){
 	float y = inSamp + _zm1 * _fb;
 	for(int i = 0; i < num_stages; i++){
 		y = _alps[i].Update(y);
-	}	
+	}
+	
+	if(y > 1.0)
+		y = 1.0;
+	if(y < -1.0)
+		y = -1.0;
+	
 	_zm1 = tanh(y); // some saturation right here?
 
 	return inSamp + y * _depth;
