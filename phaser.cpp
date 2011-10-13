@@ -71,7 +71,6 @@ void Phaser::Range(float fMin, float fMax){
 }
 
 void Phaser::Rate(float rate){
-	rate = rate;
 	_lfoInc = 2.f * F_PI * (rate / SR);	
 	_rate = rate;
 }
@@ -164,13 +163,33 @@ void Phaser::getParameterName (VstInt32 index, char* label)
 //-----------------------------------------------------------------------------------------
 void Phaser::getParameterDisplay (VstInt32 index, char* text)
 {
-	//dB2string (fGain, text, kVstMaxParamStrLen);
+	switch (index){
+		case kRate:
+			float2string(_rate, text, kVstMaxParamStrLen);	
+			break;
+		case kFeedBack:
+			float2string(_fb, text, kVstMaxParamStrLen);
+			break;
+		case kDepth:
+			float2string(_depth, text, kVstMaxParamStrLen);
+			break;
+	}
 }
 
 //-----------------------------------------------------------------------------------------
 void Phaser::getParameterLabel (VstInt32 index, char* label)
 {
-	vst_strncpy (label, "%", kVstMaxParamStrLen);
+	switch (index){
+		case kRate:
+			vst_strncpy (label, "Hz", kVstMaxParamStrLen);
+			break;
+		case kFeedBack:
+			vst_strncpy (label, "%", kVstMaxParamStrLen);
+			break;
+		case kDepth:
+			vst_strncpy (label, "%", kVstMaxParamStrLen);
+			break;
+	}
 }
 
 //------------------------------------------------------------------------
