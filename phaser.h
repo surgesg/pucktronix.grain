@@ -13,7 +13,7 @@
 #ifndef __phaser__
 #define __phaser__
 
-#define SR 44100.f // update this to get SR from host
+// #define SR 44100.f // update this to get SR from host
 #define F_PI 3.14159f
 #include "public.sdk/source/vst2.x/audioeffectx.h"
 
@@ -59,6 +59,7 @@ public:
 	void NumStages(int num);
 	float Update(float inSamp);
 	bool ChangeStages;
+	int SR;
 	
 	// Processing
 	virtual void processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames);
@@ -81,7 +82,7 @@ public:
 	virtual VstInt32 getVendorVersion ();
 
 protected:
-	AllpassDelay _alps[128]; // dynamic
+	AllpassDelay _alps[256]; // dynamic
 	
 	float _dmin, _dmax;
 	float _fb;

@@ -38,7 +38,7 @@ float AllpassDelay::Update(float inSamp){
 
 //-------------------------------------------------------------------------------------------------------
 Phaser::Phaser (audioMasterCallback audioMaster)
-: AudioEffectX (audioMaster, 1, kNumParams)	// 1 program, 1 parameter only
+: AudioEffectX (audioMaster, 1, kNumParams)	
 {
 	setNumInputs (1);		// stereo in
 	setNumOutputs (1);		// stereo out
@@ -52,6 +52,7 @@ Phaser::Phaser (audioMasterCallback audioMaster)
 	_zm1 = 0.f;
 	
 	num_stages = 12;
+	SR = getSampleRate();
 	
 	Range(440.f, 1600.f);
 	Rate(0.5);
@@ -145,7 +146,7 @@ void Phaser::setParameter (VstInt32 index, float value)
 			Depth(value);
 			break;
 		case kNumStages:
-			NumStages((int)(value * 128));
+			NumStages((int)(value * 256));
 			break;
 	}
 }
@@ -160,7 +161,7 @@ float Phaser::getParameter (VstInt32 index)
 		case kDepth:
 			return _depth;
 		case kNumStages:
-			return num_stages / 128.f;
+			return num_stages / 256.f;
 			break;
 	}
 }
@@ -253,14 +254,10 @@ VstInt32 Phaser::getVendorVersion ()
 void Phaser::processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames)
 {
     float* in1  =  inputs[0];
-    //float* in2  =  inputs[1];
     float* out1 = outputs[0];
-    //float* out2 = outputs[1];
 
     while (--sampleFrames >= 0)
     {
-     //   (*out1++) = (*in1++) * fGain;
-     //   (*out2++) = (*in2++) * fGain;
 		(*out1++) = Update(*in1++);
     }
 }
@@ -269,15 +266,11 @@ void Phaser::processReplacing (float** inputs, float** outputs, VstInt32 sampleF
 void Phaser::processDoubleReplacing (double** inputs, double** outputs, VstInt32 sampleFrames)
 {
     double* in1  =  inputs[0];
-    //double* in2  =  inputs[1];
     double* out1 = outputs[0];
-    //double* out2 = outputs[1];
-	//	double dGain = fGain;
+
 
     while (--sampleFrames >= 0)
     {
-		//   (*out1++) = (*in1++) * fGain;
-		//   (*out2++) = (*in2++) * fGain;
 		(*out1++) = Update(*in1++);
     }
 }
