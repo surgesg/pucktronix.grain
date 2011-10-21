@@ -4,8 +4,8 @@
 //
 // Category     : VST 2.x SDK Samples
 // Filename     : phaser.cpp
-// Created by   : Steinberg Media Technologies
-// Description  : Stereo plugin which applies Gain [-oo, 0dB]
+// Created by   : Greg Surges
+// Description  : Mono phaser plugin
 //
 // � 2006, Steinberg Media Technologies, All Rights Reserved
 //-------------------------------------------------------------------------------------------------------
@@ -40,8 +40,8 @@ float AllpassDelay::Update(float inSamp){
 Phaser::Phaser (audioMasterCallback audioMaster)
 : AudioEffectX (audioMaster, 1, kNumParams)	
 {
-	setNumInputs (1);		// stereo in
-	setNumOutputs (1);		// stereo out
+	setNumInputs (1);		// mono in
+	setNumOutputs (1);		// mono out
 	setUniqueID ('phas');	// identify
 	canProcessReplacing ();	// supports replacing output
 	canDoubleReplacing ();	// supports double precision processing

@@ -18,10 +18,7 @@
 #include "public.sdk/source/vst2.x/audioeffectx.h"
 
 //-------------------------------------------------------------------------------------------------------
-/* todo:
-	mix an amount of noise in with lfo
-	variable # of allpass stages?
-*/
+
 enum
 {
 	// Global
@@ -35,7 +32,7 @@ enum
 	kNumParams
 };
 
-class Phaser;
+//class Phaser;
 
 class AllpassDelay{
 public:
@@ -58,7 +55,6 @@ public:
 	void Depth(float depth);
 	void NumStages(int num);
 	float Update(float inSamp);
-	bool ChangeStages;
 	int SR;
 	
 	// Processing
