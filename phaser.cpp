@@ -11,6 +11,7 @@
 //-------------------------------------------------------------------------------------------------------
 
 #include "phaser.h"
+#include "phaser_editor.h"
 #include <math.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -59,6 +60,8 @@ Phaser::Phaser (audioMasterCallback audioMaster)
 	_rate = 0.5;
 	
 	vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
+	
+	editor = new PhaserEditor(this);
 }
 
 //-------------------------------------------------------------------------------------------------------
@@ -137,7 +140,7 @@ void Phaser::setParameter (VstInt32 index, float value)
 {
 	switch (index){
 		case kRate:
-			Rate(value);	
+			Rate(value);
 			break;
 		case kFeedBack:
 			Feedback(value);
@@ -149,6 +152,7 @@ void Phaser::setParameter (VstInt32 index, float value)
 			NumStages((int)(value * 256));
 			break;
 	}
+	((AEffGUIEditor*)editor)->setParameter (index, value);
 }
 //-----------------------------------------------------------------------------------------
 float Phaser::getParameter (VstInt32 index)
