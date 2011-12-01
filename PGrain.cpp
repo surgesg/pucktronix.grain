@@ -10,7 +10,7 @@
 #include "PGrain.h"
 #include "PWindow.h"
 
-PGrain::PGrain(float * buf, float dur, float offset){
+PGrain::PGrain(float * buf, int dur, float offset){
 	buffer = buf;
 	duration = dur;
 	sample_offset = offset;
@@ -23,8 +23,7 @@ PGrain::~PGrain(){
 }
 
 float * PGrain::getGrain(){
-	float * grainBuffer;
-	grainBuffer = new float[duration];
+	float grainBuffer[duration];
 	for(int current_sample = sample_offset; current_sample < sample_offset + duration; current_sample++){
 		// iterate through samples and multiply with window
 		// how to time-stretch window ? some percentage of total duration...

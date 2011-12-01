@@ -12,7 +12,7 @@
 
 enum{
 	HAMMING = 0,
-}
+};
 
 class PWindow{
 public:

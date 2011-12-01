@@ -8,6 +8,8 @@
  */
 
 #include "PWindow.h"
+#include "math.h"
+
 #define F_PI 3.14159f
 
 PWindow::PWindow(int shape, int duration_in_samps){
