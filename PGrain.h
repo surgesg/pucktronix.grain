@@ -17,12 +17,13 @@ class PGrain{
 public:
 	PGrain(float * buf, int dur, float offset); // expects duration in samps
 	~PGrain();
-	float * getGrain();
+	float * getGrains();
 private:	
 	PWindow * window_function;
 	float * buffer;
 	int duration;
 	float sample_offset;
+	float * grainBuffer;
 };
 
 #endif

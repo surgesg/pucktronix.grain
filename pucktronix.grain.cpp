@@ -11,6 +11,7 @@
 //-------------------------------------------------------------------------------------------------------
 
 #include "pucktronix.grain.h"
+#include "PGrainStream.h"
 #include <math.h>
 
 //-------------------------------------------------------------------------------------------------------
@@ -180,10 +181,15 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
     float* in1  =  inputs[0];
     float* out1 = outputs[0];
 
-    while (--sampleFrames >= 0)
+	PGrainStream * grain_stream;
+	grain_stream = new PGrainStream(sampleFrames, in1);
+	grain_stream->make_stream();
+	
+    for(int i = 0; i < sampleFrames; i++)
     {
-		//(*out1++) = Update(*in1++);
+		(*out1++) = grain_stream->get_stream(i);
     }
+	delete grain_stream;
 }
 
 //-----------------------------------------------------------------------------------------

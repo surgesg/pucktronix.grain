@@ -22,11 +22,15 @@ PGrain::~PGrain(){
 	delete window_function;
 }
 
-float * PGrain::getGrain(){
-	float grainBuffer[duration];
+float * PGrain::getGrains(){
+	grainBuffer = new float[duration];
+	int output_sample_index = 0;
 	for(int current_sample = sample_offset; current_sample < sample_offset + duration; current_sample++){
 		// iterate through samples and multiply with window
 		// how to time-stretch window ? some percentage of total duration...
+		grainBuffer[output_sample_index] = buffer[current_sample] * window_function->next_samp();
+		output_sample_index++;
 	}
 	// return normalized float * to grainBuffer
+	return grainBuffer;
 }
