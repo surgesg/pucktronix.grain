@@ -9,7 +9,8 @@
 
 class PGrainStream{
 public:
-	PGrainStream(int buffer_size, float * input);
+	PGrainStream(int buffer_size, float input[], int offset, int dur);
+	~PGrainStream();
 	int offset_in_samps;
 	int duration_in_samps;
 	void make_stream();

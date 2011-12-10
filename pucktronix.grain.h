@@ -25,10 +25,9 @@ enum
 	kNumPrograms = 16,
 	
 	// Parameters Tags
-	kRate = 0,
-	kFeedBack,
-	kDepth,
-	kNumStages,
+	kDuration = 0,
+	kProgRate,
+	kRandomAmt,
 	kNumParams
 };
 
@@ -42,6 +41,14 @@ public:
 
 	int SR;
 	
+	float duration;
+	float prog_rate;
+	float random_amount;
+	
+	int buffer_size_samps;
+	float * internal_buffer;
+	int read_ptr, write_ptr;
+	bool buffer_full;
 	// Processing
 	virtual void processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames);
 	virtual void processDoubleReplacing (double** inputs, double** outputs, VstInt32 sampleFrames);

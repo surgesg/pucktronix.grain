@@ -16,7 +16,7 @@ PWindow::PWindow(int shape, int duration_in_samps){
 	window_function = new float[duration_in_samps];
 	n = 0;
 	switch(shape){
-		case HAMMING:
+		case HAMMING: // big slowdown here
 			for(int n = 0; n < duration_in_samps; n++){
 				window_function[n] = 0.54 - 0.46 * cos((2 * F_PI * n) / (duration_in_samps - 1));
 			}
@@ -25,7 +25,7 @@ PWindow::PWindow(int shape, int duration_in_samps){
 }
 
 PWindow::~PWindow(){
-	delete window_function;
+	delete [] window_function;
 }
 
 float PWindow::next_samp(){

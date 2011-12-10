@@ -10,22 +10,21 @@
 #include "PGrain.h"
 #include "PWindow.h"
 
-PGrain::PGrain(float * buf, int dur, float offset){
+PGrain::PGrain(float * buf, int dur){
 	buffer = buf;
 	duration = dur;
-	sample_offset = offset;
 	window_function = new PWindow(HAMMING, dur);
 }
 
 PGrain::~PGrain(){
-	delete buffer;
+	delete []buffer;
 	delete window_function;
 }
 
 float * PGrain::getGrains(){
 	grainBuffer = new float[duration];
 	int output_sample_index = 0;
-	for(int current_sample = sample_offset; current_sample < sample_offset + duration; current_sample++){
+	for(int current_sample = 0; current_sample < duration; current_sample++){
 		// iterate through samples and multiply with window
 		// how to time-stretch window ? some percentage of total duration...
 		grainBuffer[output_sample_index] = buffer[current_sample] * window_function->next_samp();

@@ -15,7 +15,7 @@
 
 class PGrain{
 public:
-	PGrain(float * buf, int dur, float offset); // expects duration in samps
+	PGrain(float * buf, int dur); // expects duration in samps
 	~PGrain();
 	float * getGrains();
 private:	

@@ -26,13 +26,23 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 {
 	setNumInputs (1);		// mono in
 	setNumOutputs (1);		// mono out
-	setUniqueID ('phas');	// identify
+	setUniqueID ('ptgr');	// identify
 	canProcessReplacing ();	// supports replacing output
 	canDoubleReplacing ();	// supports double precision processing
 
-	SR = getSampleRate();
+	SR = 48000;
 	
 	vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
+	
+	duration = 40;
+	prog_rate = 40;
+	random_amount = 1;
+	
+	buffer_size_samps = SR * 4.f;
+	internal_buffer = new float[buffer_size_samps];
+	read_ptr = 0;
+	write_ptr = 0;
+	buffer_full = false;
 	
 //	editor = new PGranulatorEditor(this);
 }
@@ -60,17 +70,14 @@ void PGranulator::getProgramName (char* name)
 void PGranulator::setParameter (VstInt32 index, float value)
 {
 	switch (index){
-		case kRate:
-			//Rate(value);
+		case kDuration:
+			duration = value * 200.f;
 			break;
-		case kFeedBack:
-			//Feedback(value);
+		case kProgRate:
+			prog_rate = value * 200.f;
 			break;
-		case kDepth:
-			//Depth(value);
-			break;
-		case kNumStages:
-			//NumStages((int)(value * 256));
+		case kRandomAmt:
+			random_amount = value;
 			break;
 	}
 	//((AEffGUIEditor*)editor)->setParameter (index, value);
@@ -79,14 +86,14 @@ void PGranulator::setParameter (VstInt32 index, float value)
 float PGranulator::getParameter (VstInt32 index)
 {
 	switch (index){
-		case kRate:
-			//return _rate;	
-		case kFeedBack:
-			//return _fb;
-		case kDepth:
-			//return _depth;
-		case kNumStages:
-			//return num_stages / 256.f;
+		case kDuration:
+			return duration / 200.f;	
+			break;
+		case kProgRate:
+			return prog_rate / 200.f;
+			break;
+		case kRandomAmt:
+			return random_amount;
 			break;
 	}
 }
@@ -95,17 +102,14 @@ float PGranulator::getParameter (VstInt32 index)
 void PGranulator::getParameterName (VstInt32 index, char* label)
 {
 	switch (index){
-		case kRate:
-			vst_strncpy (label, "Rate", kVstMaxParamStrLen);
+		case kDuration:
+			vst_strncpy (label, "Duration", kVstMaxParamStrLen);
 			break;
-		case kFeedBack:
-			vst_strncpy (label, "Feedback", kVstMaxParamStrLen);
+		case kProgRate:
+			vst_strncpy (label, "Rate of Progression", kVstMaxParamStrLen);
 			break;
-		case kDepth:
-			vst_strncpy (label, "Depth", kVstMaxParamStrLen);
-			break;
-		case kNumStages:
-			vst_strncpy (label, "Stages", kVstMaxParamStrLen);
+		case kRandomAmt:
+			vst_strncpy (label, "Amt of Random", kVstMaxParamStrLen);
 			break;
 	}
 }
@@ -114,17 +118,14 @@ void PGranulator::getParameterName (VstInt32 index, char* label)
 void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 {
 	switch (index){
-		case kRate:
-			//float2string(_rate, text, kVstMaxParamStrLen);	
+		case kDuration:
+			float2string(duration, text, kVstMaxParamStrLen);	
 			break;
-		case kFeedBack:
-			//float2string(_fb, text, kVstMaxParamStrLen);
+		case kProgRate:
+			float2string(prog_rate, text, kVstMaxParamStrLen);
 			break;
-		case kDepth:
-			//float2string(_depth, text, kVstMaxParamStrLen);
-			break;
-		case kNumStages:
-			//int2string(num_stages, text, kVstMaxParamStrLen);
+		case kRandomAmt:
+			float2string(random_amount, text, kVstMaxParamStrLen);
 			break;
 	}
 }
@@ -133,17 +134,14 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 void PGranulator::getParameterLabel (VstInt32 index, char* label)
 {
 	switch (index){
-		case kRate:
-			vst_strncpy (label, "Hz", kVstMaxParamStrLen);
+		case kDuration:
+			vst_strncpy (label, "ms", kVstMaxParamStrLen);
 			break;
-		case kFeedBack:
+		case kProgRate:
+			vst_strncpy (label, "ms", kVstMaxParamStrLen);
+			break;
+		case kRandomAmt:
 			vst_strncpy (label, "%", kVstMaxParamStrLen);
-			break;
-		case kDepth:
-			vst_strncpy (label, "%", kVstMaxParamStrLen);
-			break;
-		case kNumStages:
-			vst_strncpy (label, "Stages", kVstMaxParamStrLen);
 			break;
 	}
 }
@@ -151,14 +149,14 @@ void PGranulator::getParameterLabel (VstInt32 index, char* label)
 //------------------------------------------------------------------------
 bool PGranulator::getEffectName (char* name)
 {
-	vst_strncpy (name, "pucktronix.phaser", kVstMaxEffectNameLen);
+	vst_strncpy (name, "pucktronix.granulator", kVstMaxEffectNameLen);
 	return true;
 }
 
 //------------------------------------------------------------------------
 bool PGranulator::getProductString (char* text)
 {
-	vst_strncpy (text, "phas", kVstMaxProductStrLen);
+	vst_strncpy (text, "ptgr", kVstMaxProductStrLen);
 	return true;
 }
 
@@ -182,13 +180,29 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
     float* out1 = outputs[0];
 
 	PGrainStream * grain_stream;
-	grain_stream = new PGrainStream(sampleFrames, in1);
+	grain_stream = new PGrainStream(buffer_size_samps, internal_buffer, prog_rate, duration * (SR / 1000));
 	grain_stream->make_stream();
 	
-    for(int i = 0; i < sampleFrames; i++)
+    for(int i = 0; i < sampleFrames; i++) // buffer fill loop
     {
-		(*out1++) = grain_stream->get_stream(i);
-    }
+		internal_buffer[write_ptr] = in1[i];
+		write_ptr++;
+		if(write_ptr >= buffer_size_samps){ // wrap
+			write_ptr = 0;
+			buffer_full = true;
+		}
+	}
+	if(buffer_full){
+		for(int i = 0; i < sampleFrames; i++) // output loop
+		{
+			(*out1++) = grain_stream->get_stream(read_ptr);
+			read_ptr++;
+			if(read_ptr >= buffer_size_samps){
+				read_ptr = 0;
+			}
+		}
+	}
+	
 	delete grain_stream;
 }
 
