@@ -26,10 +26,19 @@ enum
 	
 	// Parameters Tags
 	kDuration = 0,
+	kNumStreams,
 	kProgRate,
 	kRandomAmt,
 	kNumParams
 };
+
+typedef struct {
+	int duration;
+	int start_sample_read;
+	int start_sample_write;
+	
+} GrainParams;
+
 
 //class Phaser;
 
@@ -44,11 +53,15 @@ public:
 	float duration;
 	float prog_rate;
 	float random_amount;
-	
 	int buffer_size_samps;
 	float * internal_buffer;
-	int read_ptr, write_ptr;
+	float * working_buffer;
+	int read_ptr, write_ptr, output_ptr;
 	bool buffer_full;
+	int numStreams;
+	int num_grains;
+	GrainParams * grain_params;
+	long int time;
 	// Processing
 	virtual void processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames);
 	virtual void processDoubleReplacing (double** inputs, double** outputs, VstInt32 sampleFrames);

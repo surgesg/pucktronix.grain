@@ -13,6 +13,7 @@
 #include "pucktronix.grain.h"
 #include "PGrainStream.h"
 #include <math.h>
+#include <stdlib.h>
 
 //-------------------------------------------------------------------------------------------------------
 AudioEffect* createEffectInstance (audioMasterCallback audioMaster)
@@ -39,10 +40,15 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	random_amount = 1;
 	
 	buffer_size_samps = SR * 4.f;
-	internal_buffer = new float[buffer_size_samps];
+	internal_buffer = new float[buffer_size_samps]; // input delay line buffer
+	working_buffer = new float[buffer_size_samps]; // working delay line for output
 	read_ptr = 0;
 	write_ptr = 0;
+	output_ptr = 0;
 	buffer_full = false;
+	numStreams = 1;
+	grain_params = new GrainParams;
+	time = 0;
 	
 //	editor = new PGranulatorEditor(this);
 }
@@ -71,13 +77,16 @@ void PGranulator::setParameter (VstInt32 index, float value)
 {
 	switch (index){
 		case kDuration:
-			duration = value * 200.f;
+			duration = value * 2000.f;
 			break;
 		case kProgRate:
-			prog_rate = value * 200.f;
+			prog_rate = value * 2000.f;
 			break;
 		case kRandomAmt:
 			random_amount = value;
+			break;
+		case kNumStreams:
+			numStreams = (int)(value * 8);
 			break;
 	}
 	//((AEffGUIEditor*)editor)->setParameter (index, value);
@@ -87,13 +96,16 @@ float PGranulator::getParameter (VstInt32 index)
 {
 	switch (index){
 		case kDuration:
-			return duration / 200.f;	
+			return duration / 2000.f;	
 			break;
 		case kProgRate:
-			return prog_rate / 200.f;
+			return prog_rate / 2000.f;
 			break;
 		case kRandomAmt:
 			return random_amount;
+			break;
+		case kNumStreams:
+			return numStreams / 8.f;
 			break;
 	}
 }
@@ -111,6 +123,9 @@ void PGranulator::getParameterName (VstInt32 index, char* label)
 		case kRandomAmt:
 			vst_strncpy (label, "Amt of Random", kVstMaxParamStrLen);
 			break;
+		case kNumStreams:
+			vst_strncpy (label, "Number of Streams", kVstMaxParamStrLen);
+			break;
 	}
 }
 
@@ -127,6 +142,9 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 		case kRandomAmt:
 			float2string(random_amount, text, kVstMaxParamStrLen);
 			break;
+		case kNumStreams:
+			float2string(numStreams, text, kVstMaxParamStrLen);	
+			break;
 	}
 }
 
@@ -142,6 +160,9 @@ void PGranulator::getParameterLabel (VstInt32 index, char* label)
 			break;
 		case kRandomAmt:
 			vst_strncpy (label, "%", kVstMaxParamStrLen);
+			break;
+		case kNumStreams:
+			vst_strncpy (label, "streams", kVstMaxParamStrLen);
 			break;
 	}
 }
@@ -178,32 +199,38 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
 {
     float* in1  =  inputs[0];
     float* out1 = outputs[0];
-
-	PGrainStream * grain_stream;
-	grain_stream = new PGrainStream(buffer_size_samps, internal_buffer, prog_rate, duration * (SR / 1000));
-	grain_stream->make_stream();
 	
-    for(int i = 0; i < sampleFrames; i++) // buffer fill loop
+	for(int i = 0; i < sampleFrames; i++) // buffer fill loop
     {
 		internal_buffer[write_ptr] = in1[i];
 		write_ptr++;
-		if(write_ptr >= buffer_size_samps){ // wrap
-			write_ptr = 0;
+		if(write_ptr >= buffer_size_samps / 2){ // wrap
 			buffer_full = true;
 		}
+		if(write_ptr >= buffer_size_samps){
+			write_ptr = 0;
+		}
 	}
-	if(buffer_full){
-		for(int i = 0; i < sampleFrames; i++) // output loop
-		{
-			(*out1++) = grain_stream->get_stream(read_ptr);
-			read_ptr++;
-			if(read_ptr >= buffer_size_samps){
-				read_ptr = 0;
+	if(buffer_full){ 
+		num_grains = 1;
+		for(int i = 0; i < num_grains; i++){ // each grain
+			grain_params->duration = duration * (48000.f / 1000.f);
+			grain_params->start_sample_write = rand() % buffer_size_samps;
+			grain_params->start_sample_read = (write_ptr + (rand() % buffer_size_samps)) % buffer_size_samps;
+			for(int samp = 0; samp < grain_params->duration; samp++){
+				working_buffer[(samp + grain_params->start_sample_write) % buffer_size_samps] = internal_buffer[(samp + grain_params->start_sample_read) % buffer_size_samps] *
+																								(0.5 * (1 - cos((2 * F_PI * samp) / (grain_params->duration - 1))));
 			}
 		}
 	}
 	
-	delete grain_stream;
+	for(int i = 0; i < sampleFrames; i++){ 	// copy output buffer to output
+		(*out1++) = working_buffer[(read_ptr + i) % buffer_size_samps]; // local buffer doesn't exist anymore - neet to use part of working buffer
+	}
+	read_ptr += sampleFrames;
+	if(read_ptr >= buffer_size_samps){
+		read_ptr = 0;
+	}
 }
 
 //-----------------------------------------------------------------------------------------
