@@ -211,11 +211,13 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
 			write_ptr = 0;
 		}
 	}
-	if(buffer_full){ 
-		num_grains = 1;
+	if(buffer_full){ // somehow constrain sample writing to areas whch won't be heard in the next sampleFrame... probably not possible 
+					// basically need to reserve a section which is no longer being modified
+					// shifting samples out, so to speak
+		num_grains = 16;
 		for(int i = 0; i < num_grains; i++){ // each grain
 			grain_params->duration = duration * (48000.f / 1000.f);
-			grain_params->start_sample_write = rand() % buffer_size_samps;
+			grain_params->start_sample_write = rand() % sampleFrames; // start writing within the output buffer...... 
 			grain_params->start_sample_read = (write_ptr + (rand() % buffer_size_samps)) % buffer_size_samps;
 			for(int samp = 0; samp < grain_params->duration; samp++){
 				working_buffer[(samp + grain_params->start_sample_write) % buffer_size_samps] = internal_buffer[(samp + grain_params->start_sample_read) % buffer_size_samps] *
@@ -225,12 +227,9 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
 	}
 	
 	for(int i = 0; i < sampleFrames; i++){ 	// copy output buffer to output
-		(*out1++) = working_buffer[(read_ptr + i) % buffer_size_samps]; // local buffer doesn't exist anymore - neet to use part of working buffer
+		(*out1++) = working_buffer[i]; 
 	}
-	read_ptr += sampleFrames;
-	if(read_ptr >= buffer_size_samps){
-		read_ptr = 0;
-	}
+	memcpy(working_buffer, working_buffer + sampleFrames, sizeof(float) * sampleFrames); // shift out old samples
 }
 
 //-----------------------------------------------------------------------------------------
