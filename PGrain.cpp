@@ -11,7 +11,7 @@
 #include "PWindow.h"
 #include <math.h>
 #define F_PI 3.14159f
-
+#define WINDOW_SIZE 2048
 PGrain::PGrain(){
 		
 }
@@ -19,10 +19,10 @@ PGrain::PGrain(){
 PGrain::PGrain(float * buf, int _buffer_size){
 /* constructor, called once when program is run */
 	buffer = buf;
-	window_function = new float[1024];
+	window_function = new float[WINDOW_SIZE];
 	// make cosine window
-	for(int i = 0; i < 1024; i++)
-		window_function[i] = 0.5 * (1 - cos((2 * F_PI * i) / (1024 - 1)));
+	for(int i = 0; i < WINDOW_SIZE; i++)
+		window_function[i] = 0.5 * (1 - cos((2 * F_PI * i) / (WINDOW_SIZE - 1)));
 	current_sample = 0;
 	buffer_size = _buffer_size;
 }
@@ -35,10 +35,10 @@ PGrain::~PGrain(){
 void PGrain::init(float * buf, int _buffer_size){
 	/* constructor, called once when program is run */
 	buffer = buf;
-	window_function = new float[1024];
+	window_function = new float[WINDOW_SIZE];
 	// make cosine window
-	for(int i = 0; i < 1024; i++)
-		window_function[i] = 0.5 * (1 - cos((2 * F_PI * i) / (1024 - 1)));
+	for(int i = 0; i < WINDOW_SIZE; i++)
+		window_function[i] = 0.5 * (1 - cos((2 * F_PI * i) / (WINDOW_SIZE - 1)));
 	current_sample = 0;
 	buffer_size = _buffer_size;
 }
@@ -47,7 +47,7 @@ void PGrain::generate_parameters(int _duration, int _start_sample, int _start_ti
 /* details for a given grain, called each time the grain is reused */
 	duration = _duration;
 	sample_offset = current_sample = _start_sample;
-	window_increment = 1024 / duration;
+	window_increment = (float)WINDOW_SIZE / duration;
 	window_index = 0;
 	n = 0;
 	start_time = _start_time;
@@ -69,7 +69,7 @@ int PGrain::get_start_time(){
 float PGrain::synthesize(int time){
 	/* handles time and sample calculations */
 	if(time >= start_time){ // if grain is set to become active
-		out_sample = buffer[current_sample] * window_function[window_index];
+		out_sample = buffer[current_sample] * window_function[(int)window_index];
 		if(n > duration){ // check that we're under duration of the given grain
 			active = false; // this is going to be checked externally
 		}

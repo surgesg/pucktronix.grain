@@ -29,8 +29,8 @@ private:
 	int current_sample;
 	bool active;
 	float * window_function;
-	int window_increment;
-	int window_index;
+	float window_increment;
+	float window_index;
 	float * buffer;
 	int duration;
 	int n; // number of samples calculated of current grain
