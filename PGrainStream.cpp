@@ -23,22 +23,23 @@ PGrainStream::PGrainStream(float * input, int size, int m_grains){
 		grains[i].init(input, size);	
 	}
 	previous_start_time = 0;
-	delay = 12000; // 1/4 second delay
+	delay = 48000; // 1 second delay
 }
 
 PGrainStream::~PGrainStream(){
 	delete [] input_buffer;
 }
 
-float PGrainStream::synthesize(int write_ptr){ // uses write_ptr to enforce no overlap
+float PGrainStream::synthesize(int write_ptr, int duration, int d_time){ // uses write_ptr to enforce no overlap
 	float output_sample = 0;
+	delay = d_time;
 	for(int g = 0; g < max_grains; g++){
 		// check for inactive grains, and if inactive, allocate them for the future	
 		if(!grains[g].is_active()){ // if grain is inactive, set the params and set it active
-			next_start_time = delay + n + (rand() % delay); /// look at this later too...... placeholder
+			next_start_time = delay + n + (rand() % (delay * 4)); /// look at this later too...... placeholder
 			sample_offset = next_start_time - n; // account for write_ptr travel before grain becomes active
 			next_start_sample = ((write_ptr + delay + sample_offset) + (rand() % delay)) % buffer_size; 
-			grains[g].generate_parameters(1600, next_start_sample, next_start_time);
+			grains[g].generate_parameters(duration, next_start_sample, next_start_time);
 			grains[g].activate();
 			previous_start_time = next_start_time;
 		} else { // grain is active, so call synthesize

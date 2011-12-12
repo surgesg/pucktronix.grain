@@ -28,7 +28,7 @@ enum
 	// Parameters Tags
 	kDuration = 0,
 	kNumStreams,
-	kProgRate,
+	kDelayTime,
 	kRandomAmt,
 	kNumParams
 };
@@ -46,7 +46,7 @@ public:
 	int SR;
 	
 	float duration;
-	float prog_rate;
+	float delay_time;
 	float random_amount;
 	int buffer_size_samps;
 	float * internal_buffer;

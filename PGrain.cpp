@@ -69,7 +69,7 @@ int PGrain::get_start_time(){
 float PGrain::synthesize(int time){
 	/* handles time and sample calculations */
 	if(time >= start_time){ // if grain is set to become active
-		out_sample = buffer[current_sample] * window_function[(int)window_index];
+		out_sample = buffer[current_sample] * window_function[(int)window_index % WINDOW_SIZE];
 		if(n > duration){ // check that we're under duration of the given grain
 			active = false; // this is going to be checked externally
 		}

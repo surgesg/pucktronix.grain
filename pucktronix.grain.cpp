@@ -37,7 +37,7 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
 	
 	duration = 40;
-	prog_rate = 40;
+	delay_time = 40;
 	random_amount = 1;
 	
 	buffer_size_samps = SR * 4.f;
@@ -48,7 +48,7 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	output_ptr = 0;
 	buffer_full = false;
 	numStreams = 1;
-	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 50);
+	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 150);
 	time = 0;
 	
 //	editor = new PGranulatorEditor(this);
@@ -80,8 +80,8 @@ void PGranulator::setParameter (VstInt32 index, float value)
 		case kDuration:
 			duration = value * 2000.f;
 			break;
-		case kProgRate:
-			prog_rate = value * 2000.f;
+		case kDelayTime:
+			delay_time = 1 + value * 2000.f;
 			break;
 		case kRandomAmt:
 			random_amount = value;
@@ -99,8 +99,8 @@ float PGranulator::getParameter (VstInt32 index)
 		case kDuration:
 			return duration / 2000.f;	
 			break;
-		case kProgRate:
-			return prog_rate / 2000.f;
+		case kDelayTime:
+			return delay_time / 2000.f;
 			break;
 		case kRandomAmt:
 			return random_amount;
@@ -118,8 +118,8 @@ void PGranulator::getParameterName (VstInt32 index, char* label)
 		case kDuration:
 			vst_strncpy (label, "Duration", kVstMaxParamStrLen);
 			break;
-		case kProgRate:
-			vst_strncpy (label, "Rate of Progression", kVstMaxParamStrLen);
+		case kDelayTime:
+			vst_strncpy (label, "Delay Time", kVstMaxParamStrLen);
 			break;
 		case kRandomAmt:
 			vst_strncpy (label, "Amt of Random", kVstMaxParamStrLen);
@@ -137,8 +137,8 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 		case kDuration:
 			float2string(duration, text, kVstMaxParamStrLen);	
 			break;
-		case kProgRate:
-			float2string(prog_rate, text, kVstMaxParamStrLen);
+		case kDelayTime:
+			float2string(delay_time, text, kVstMaxParamStrLen);
 			break;
 		case kRandomAmt:
 			float2string(random_amount, text, kVstMaxParamStrLen);
@@ -156,7 +156,7 @@ void PGranulator::getParameterLabel (VstInt32 index, char* label)
 		case kDuration:
 			vst_strncpy (label, "ms", kVstMaxParamStrLen);
 			break;
-		case kProgRate:
+		case kDelayTime:
 			vst_strncpy (label, "ms", kVstMaxParamStrLen);
 			break;
 		case kRandomAmt:
@@ -214,7 +214,7 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
 	}
 	if(buffer_full){ // somehow constrain sample writing to areas whch won't be heard in the next sampleFrame... probably not possible 
 		for(int i = 0; i < sampleFrames; i++){ 	// copy output buffer to output
-			(*out1++) = grain_stream->synthesize(write_ptr); 
+			(*out1++) = grain_stream->synthesize(write_ptr, duration * (SR / 1000), delay_time * (SR / 1000)); // move the delay/duration conversions out of process loop 
 			time++;
 		}	
 	}
