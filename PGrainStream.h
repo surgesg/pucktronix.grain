@@ -18,7 +18,7 @@ public:
 	~PGrainStream();
 	float synthesize(int write_ptr);
 private:
-	int n, delay;
+	int n, delay, sample_offset;
 	int next_start_time, next_start_sample, previous_start_time;
 	int max_grains;
 	PGrain * grains;

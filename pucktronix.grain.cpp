@@ -48,7 +48,7 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	output_ptr = 0;
 	buffer_full = false;
 	numStreams = 1;
-	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 10);
+	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 50);
 	time = 0;
 	
 //	editor = new PGranulatorEditor(this);

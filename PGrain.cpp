@@ -47,7 +47,7 @@ void PGrain::generate_parameters(int _duration, int _start_sample, int _start_ti
 /* details for a given grain, called each time the grain is reused */
 	duration = _duration;
 	sample_offset = current_sample = _start_sample;
-	window_increment = (float)WINDOW_SIZE / duration;
+	window_increment = (float)(WINDOW_SIZE - 1) / duration;
 	window_index = 0;
 	n = 0;
 	start_time = _start_time;
