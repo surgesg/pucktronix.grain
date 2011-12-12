@@ -17,6 +17,7 @@
 #define F_PI 3.14159f
 #include "public.sdk/source/vst2.x/audioeffectx.h"
 #include "PGrain.h"
+#include "PGrainStream.h"
 //-------------------------------------------------------------------------------------------------------
 
 enum
@@ -32,12 +33,6 @@ enum
 	kNumParams
 };
 
-typedef struct {
-	int duration;
-	int start_sample_read;
-	int start_sample_write;
-	
-} GrainParams;
 
 
 //class Phaser;
@@ -60,7 +55,7 @@ public:
 	bool buffer_full;
 	int numStreams;
 	int num_grains;
-	GrainParams * grain_params;
+	PGrainStream * grain_stream;
 	long int time;
 	// Processing
 	virtual void processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames);

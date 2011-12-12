@@ -46,7 +46,7 @@ void PGrain::init(float * buf, int _buffer_size){
 void PGrain::generate_parameters(int _duration, int _start_sample, int _start_time){
 /* details for a given grain, called each time the grain is reused */
 	duration = _duration;
-	sample_offset = _start_sample;
+	sample_offset = current_sample = _start_sample;
 	window_increment = 1024 / duration;
 	window_index = 0;
 	n = 0;
@@ -62,17 +62,21 @@ void PGrain::activate(){
 	active = true;		
 }
 	
+int PGrain::get_start_time(){
+	return start_time;	
+}
+
 float PGrain::synthesize(int time){
 	/* handles time and sample calculations */
 	if(time >= start_time){ // if grain is set to become active
 		out_sample = buffer[current_sample] * window_function[window_index];
-		if(n >= duration){ // check that we're under duration of the given grain
+		if(n > duration){ // check that we're under duration of the given grain
 			active = false; // this is going to be checked externally
 		}
 		n++;
 		current_sample++;
 		/* wrap sample index to buffer */
-		if(current_sample > buffer_size){
+		if(current_sample >= buffer_size){
 			current_sample = 0;
 		}
 		window_index += window_increment;

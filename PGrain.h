@@ -19,10 +19,11 @@ public:
 	PGrain(float * buf, int buffer_size); // expects duration in samps
 	~PGrain();
 	void init(float * buf, int buffer_size);
-	float synthesize();	
+	float synthesize(int n);	
 	void activate();
 	bool is_active();
 	void generate_parameters(int duration, int start_sample, int start_time);
+	int get_start_time();
 private:	
 	int buffer_size;
 	int current_sample;

@@ -16,9 +16,11 @@ class PGrainStream{
 public:
 	PGrainStream(float * input, int size, int max_grains);
 	~PGrainStream();
-	float synthesize();
+	float synthesize(int write_ptr);
 private:
-	int n;
+	int n, delay;
+	int next_start_time, next_start_sample, previous_start_time;
+	int max_grains;
 	PGrain * grains;
 	int buffer_size;
 	float * input_buffer;

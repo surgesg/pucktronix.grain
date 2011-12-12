@@ -14,6 +14,7 @@
 #include "PGrainStream.h"
 #include <math.h>
 #include <stdlib.h>
+#include "PGrainStream.h"
 
 //-------------------------------------------------------------------------------------------------------
 AudioEffect* createEffectInstance (audioMasterCallback audioMaster)
@@ -47,7 +48,7 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	output_ptr = 0;
 	buffer_full = false;
 	numStreams = 1;
-	grain_params = new GrainParams;
+	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 10);
 	time = 0;
 	
 //	editor = new PGranulatorEditor(this);
@@ -212,24 +213,13 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
 		}
 	}
 	if(buffer_full){ // somehow constrain sample writing to areas whch won't be heard in the next sampleFrame... probably not possible 
-					// basically need to reserve a section which is no longer being modified
-					// shifting samples out, so to speak
-		num_grains = 16;
-		for(int i = 0; i < num_grains; i++){ // each grain
-			grain_params->duration = duration * (48000.f / 1000.f);
-			grain_params->start_sample_write = rand() % sampleFrames; // start writing within the output buffer...... 
-			grain_params->start_sample_read = (write_ptr + (rand() % buffer_size_samps)) % buffer_size_samps;
-			for(int samp = 0; samp < grain_params->duration; samp++){
-				working_buffer[(samp + grain_params->start_sample_write) % buffer_size_samps] = internal_buffer[(samp + grain_params->start_sample_read) % buffer_size_samps] *
-																								(0.5 * (1 - cos((2 * F_PI * samp) / (grain_params->duration - 1))));
-			}
-		}
+		for(int i = 0; i < sampleFrames; i++){ 	// copy output buffer to output
+			(*out1++) = grain_stream->synthesize(write_ptr); 
+			time++;
+		}	
 	}
 	
-	for(int i = 0; i < sampleFrames; i++){ 	// copy output buffer to output
-		(*out1++) = working_buffer[i]; 
-	}
-	memcpy(working_buffer, working_buffer + sampleFrames, sizeof(float) * sampleFrames); // shift out old samples
+
 }
 
 //-----------------------------------------------------------------------------------------
