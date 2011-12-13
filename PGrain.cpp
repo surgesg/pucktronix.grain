@@ -46,9 +46,16 @@ void PGrain::set_window(int shape){
 			for(int i = 0; i < WINDOW_SIZE; i++)
 				window_function[i] = 0.5 * (1 - cos((2 * F_PI * i) / (WINDOW_SIZE - 1)));
 			break;
-		case TUKEY:
+		case FLAT_TOP: 
+			for(int i = 0; i < WINDOW_SIZE; i++)
+				window_function[i] = 1.f - 1.93 * cos((2.f * F_PI * i) / (WINDOW_SIZE - 1.f)) 
+									 + 1.29 * cos((4.f * F_PI * i) / (WINDOW_SIZE - 1.f))
+									 - 0.388 * cos((6.f * F_PI * i) / (WINDOW_SIZE - 1.f))
+									 + 0.032 * cos((8.f * F_PI * i) / (WINDOW_SIZE - 1.f));
 			break;
 		case COSINE:
+			for(int i = 0; i < WINDOW_SIZE; i++)
+				window_function[i] = sin((F_PI * i) / (WINDOW_SIZE - 1.f));
 			break;
 	}
 }

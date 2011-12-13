@@ -14,7 +14,7 @@ enum {
 	HAMMING = 0,	
 	TRIANGLE,
 	HANN,
-	TUKEY,
+	FLAT_TOP,
 	COSINE
 };
 

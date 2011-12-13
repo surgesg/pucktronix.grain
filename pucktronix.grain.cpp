@@ -97,7 +97,7 @@ void PGranulator::setParameter (VstInt32 index, float value)
 			wet_dry = value;
 			break;
 		case kWindow:
-			window = (int)(value * 5);
+			window = (int)(value * 4);
 			switch(window){
 				case 0:
 					grain_stream->set_window(HAMMING);
@@ -109,7 +109,7 @@ void PGranulator::setParameter (VstInt32 index, float value)
 					grain_stream->set_window(HANN);
 					break;
 				case 3:
-					grain_stream->set_window(TUKEY);
+					grain_stream->set_window(FLAT_TOP);
 					break;
 				case 4:
 					grain_stream->set_window(COSINE);
@@ -140,7 +140,7 @@ float PGranulator::getParameter (VstInt32 index)
 			return wet_dry;
 			break;
 		case kWindow:
-			return window / 5.f;
+			return window / 4.f;
 			break;
 	}
 }
@@ -190,7 +190,23 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 			float2string(wet_dry * 100, text, kVstMaxParamStrLen);	
 			break;
 		case kWindow:
-			float2string(window, text, kVstMaxParamStrLen);
+			switch(window){
+				case HAMMING:
+					strcpy(text, "HAMMING");
+					break;
+				case TRIANGLE:
+					strcpy(text, "TRIANGLE");
+					break;
+				case HANN:
+					strcpy(text, "HANN");
+					break;	
+				case FLAT_TOP:
+					strcpy(text, "FLAT_TOP");
+					break;
+				case COSINE:
+					strcpy(text, "COSINE");
+					break;	
+			}
 			break;
 	}
 }
