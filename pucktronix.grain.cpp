@@ -36,8 +36,8 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	
 	vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
 	
-	duration = 40;
-	delay_time = 40;
+	duration = 40 * (SR / 1000.f);
+	delay_time = 40 * (SR / 1000.f);
 	random_amount = 1;
 	wet_dry = 0.5;
 	
@@ -49,7 +49,8 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	output_ptr = 0;
 	buffer_full = false;
 	numStreams = 1;
-	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 150);
+	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 50);
+	grain_stream->set_parameters(duration, delay_time);
 	time = 0;
 	window = HANN;
 	
@@ -81,17 +82,11 @@ void PGranulator::setParameter (VstInt32 index, float value)
 	switch (index){
 		case kDuration:
 			duration = value * 200.f;
-			grain_stream->set_parameters(duration * (SR / 1000), delay_time * (SR / 1000));
+			grain_stream->set_parameters(duration * (SR / 1000.f), delay_time * (SR / 1000.f));
 			break;
 		case kDelayTime:
 			delay_time = 1 + value * 2000.f;
-			grain_stream->set_parameters(duration * (SR / 1000), delay_time * (SR / 1000));
-			break;
-		case kRandomAmt:
-			random_amount = value;
-			break;
-		case kNumStreams:
-			numStreams = (int)(value * 8);
+			grain_stream->set_parameters(duration * (SR / 1000.f), delay_time * (SR / 1000.f));
 			break;
 		case kWetDry:
 			wet_dry = value;
@@ -130,12 +125,6 @@ float PGranulator::getParameter (VstInt32 index)
 		case kDelayTime:
 			return delay_time / 2000.f;
 			break;
-		case kRandomAmt:
-			return random_amount;
-			break;
-		case kNumStreams:
-			return numStreams / 8.f;
-			break;
 		case kWetDry:
 			return wet_dry;
 			break;
@@ -155,12 +144,6 @@ void PGranulator::getParameterName (VstInt32 index, char* label)
 		case kDelayTime:
 			vst_strncpy (label, "Delay Time", kVstMaxParamStrLen);
 			break;
-		case kRandomAmt:
-			vst_strncpy (label, "Amt of Random", kVstMaxParamStrLen);
-			break;
-		case kNumStreams:
-			vst_strncpy (label, "Number of Streams", kVstMaxParamStrLen);
-			break;
 		case kWetDry:
 			vst_strncpy (label, "Wet/Dry Mix", kVstMaxParamStrLen);
 			break;
@@ -179,12 +162,6 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 			break;
 		case kDelayTime:
 			float2string(delay_time, text, kVstMaxParamStrLen);
-			break;
-		case kRandomAmt:
-			float2string(random_amount, text, kVstMaxParamStrLen);
-			break;
-		case kNumStreams:
-			float2string(numStreams, text, kVstMaxParamStrLen);	
 			break;
 		case kWetDry:
 			float2string(wet_dry * 100, text, kVstMaxParamStrLen);	
@@ -220,12 +197,6 @@ void PGranulator::getParameterLabel (VstInt32 index, char* label)
 			break;
 		case kDelayTime:
 			vst_strncpy (label, "ms", kVstMaxParamStrLen);
-			break;
-		case kRandomAmt:
-			vst_strncpy (label, "%", kVstMaxParamStrLen);
-			break;
-		case kNumStreams:
-			vst_strncpy (label, "streams", kVstMaxParamStrLen);
 			break;
 		case kWetDry:
 			vst_strncpy (label, "%", kVstMaxParamStrLen);
@@ -267,7 +238,13 @@ VstInt32 PGranulator::getVendorVersion ()
 void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames)
 {
     float* in1  =  inputs[0];
+    float* in2  =  inputs[1];
+
     float* out1 = outputs[0];
+    float* out2 = outputs[1];
+	SR = getSampleRate();
+
+	// need two buffers, need two grain_streams to maintain stereo (if that matters... can the input be summed?)
 	
 	for(int i = 0; i < sampleFrames; i++) // buffer fill loop
     {
@@ -282,7 +259,9 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
 	}
 	if(buffer_full){ // somehow constrain sample writing to areas whch won't be heard in the next sampleFrame... probably not possible 
 		for(int i = 0; i < sampleFrames; i++){ 	// copy output buffer to output
-			(*out1++) = (grain_stream->synthesize(write_ptr) * (1 - wet_dry)) + (wet_dry * in1[i]); // move the delay/duration conversions out of process loop 
+			sample_buffer = grain_stream->synthesize(write_ptr);;
+			(*out1++) = (sample_buffer->left * (1.f - wet_dry)) + (wet_dry * in1[i]); // move the delay/duration conversions out of process loop 
+			(*out2++) = (sample_buffer->right * (1.f - wet_dry)) + (wet_dry * in2[i]); // move the delay/duration conversions out of process loop 
 			time++;
 		}	
 	}

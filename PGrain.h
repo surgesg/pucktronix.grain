@@ -18,22 +18,28 @@ enum {
 	COSINE
 };
 
+typedef struct{
+	float left;
+	float right;
+} stereo_sample;
+
 class PGrain{
 public:
 	PGrain();
 	PGrain(float * buf, int buffer_size); // expects duration in samps
 	~PGrain();
-	void init(float * buf, int buffer_size);
-	float synthesize(int n);	
+	void init(float * buf, int buffer_size, int duration);
+	stereo_sample synthesize(int n);	
 	void activate();
 	bool is_active();
-	void generate_parameters(int duration, int start_sample, int start_time);
+	void generate_parameters(int duration, int start_sample, int start_time, float location);
 	int get_start_time();
 	void set_window(int shape);
 private:	
 	int buffer_size;
 	int current_sample;
 	bool active;
+	float stereo_location;
 	float * window_function;
 	float window_increment;
 	float window_index;
@@ -42,7 +48,8 @@ private:
 	int n; // number of samples calculated of current grain
 	int start_time;
 	float sample_offset;
-	float out_sample;
+	float mono_sample;
+	stereo_sample out_sample, zero;
 };
 
 #endif

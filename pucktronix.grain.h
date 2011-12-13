@@ -27,9 +27,7 @@ enum
 	
 	// Parameters Tags
 	kDuration = 0,
-	kNumStreams,
 	kDelayTime,
-	kRandomAmt,
 	kWetDry,
 	kWindow,
 	kNumParams
@@ -56,6 +54,8 @@ public:
 	int num_grains;
 	int window;
 	PGrainStream * grain_stream;
+	stereo_sample * sample_buffer;
+	
 	long int time;
 	// Processing
 	virtual void processReplacing (float** inputs, float** outputs, VstInt32 sampleFrames);
