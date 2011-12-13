@@ -28,6 +28,7 @@ PGrain::PGrain(float * buf, int _buffer_size){
 	stereo_location = 0;
 	zero.left = zero.right = 0.f;
 	active = false;
+	playback_rate = 1.0;
 }
 
 PGrain::~PGrain(){
@@ -74,9 +75,12 @@ void PGrain::init(float * buf, int _buffer_size, int _duration){
 	buffer_size = _buffer_size;
 	duration = _duration;
 	start_time = 100;
+	zero.left = zero.right = 0.f;
+	active = false;
+	playback_rate = 1.0;
 }
 
-void PGrain::generate_parameters(int _duration, int _start_sample, int _start_time, float location){
+void PGrain::generate_parameters(int _duration, int _start_sample, int _start_time, float location, float rate){
 /* details for a given grain, called each time the grain is reused */
 	duration = _duration;
 	sample_offset = current_sample = _start_sample;
@@ -85,6 +89,7 @@ void PGrain::generate_parameters(int _duration, int _start_sample, int _start_ti
 	n = 0;
 	start_time = _start_time;
 	stereo_location = location;
+	playback_rate = rate;
 }
 	
 bool PGrain::is_active(){
@@ -103,14 +108,14 @@ int PGrain::get_start_time(){
 stereo_sample PGrain::synthesize(int time){
 	/* handles time and sample calculations */
 	if(time >= start_time){ // if grain is set to become active
-		mono_sample = buffer[current_sample] * window_function[(int)window_index % WINDOW_SIZE];
+		mono_sample = buffer[(int)(current_sample + 0.5)] * window_function[(int)window_index % WINDOW_SIZE];
 		out_sample.left = mono_sample * stereo_location;
 		out_sample.right = mono_sample * (1.f - stereo_location);
 		if(n > duration){ // check that we're under duration of the given grain
 			active = false; // this is going to be checked externally
 		}
 		n++;
-		current_sample++;
+		current_sample += playback_rate;
 		/* wrap sample index to buffer */
 		if(current_sample >= buffer_size){
 			current_sample = 0;

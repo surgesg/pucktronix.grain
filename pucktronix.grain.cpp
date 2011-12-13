@@ -51,6 +51,7 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	numStreams = 1;
 	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 50);
 	grain_stream->set_parameters(duration, delay_time);
+	grain_stream->set_rate(1.0);
 	time = 0;
 	window = HANN;
 	
@@ -117,6 +118,9 @@ void PGranulator::setParameter (VstInt32 index, float value)
 					break;
 			}		
 			break;
+		case kPlaybackRate:
+			grain_stream->set_rate(value * 1.5 + 0.5); // range from 0.5 - 2.0
+			break;
 			
 	}
 	//((AEffGUIEditor*)editor)->setParameter (index, value);
@@ -143,6 +147,9 @@ float PGranulator::getParameter (VstInt32 index)
 		case kWindow:
 			return window / 4.f;
 			break;
+		case kPlaybackRate:
+			return (grain_stream->get_rate() - 0.5) / 1.5;
+			break;
 	}
 }
 
@@ -167,6 +174,9 @@ void PGranulator::getParameterName (VstInt32 index, char* label)
 			break;	
 		case kWindow:
 			vst_strncpy (label, "Window", kVstMaxParamStrLen);
+			break;
+		case kPlaybackRate:
+			vst_strncpy (label, "Rate", kVstMaxParamStrLen);
 			break;
 	}
 }
@@ -209,6 +219,9 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 					break;	
 			}
 			break;
+		case kPlaybackRate:
+			float2string(grain_stream->get_rate(), text, kVstMaxParamStrLen);	
+			break;
 	}
 }
 
@@ -233,6 +246,9 @@ void PGranulator::getParameterLabel (VstInt32 index, char* label)
 			break;
 		case kWindow:
 			vst_strncpy (label, "window", kVstMaxParamStrLen);
+			break;
+		case kPlaybackRate:
+			vst_strncpy (label, "%", kVstMaxParamStrLen);
 			break;
 	}
 }

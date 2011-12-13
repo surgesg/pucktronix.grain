@@ -32,13 +32,14 @@ public:
 	stereo_sample synthesize(int n);	
 	void activate();
 	bool is_active();
-	void generate_parameters(int duration, int start_sample, int start_time, float location);
+	void generate_parameters(int duration, int start_sample, int start_time, float location, float rate);
 	int get_start_time();
 	void set_window(int shape);
 private:	
 	int buffer_size;
-	int current_sample;
+	float current_sample;
 	bool active;
+	float playback_rate;
 	float stereo_location;
 	float * window_function;
 	float window_increment;

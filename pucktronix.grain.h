@@ -32,6 +32,7 @@ enum
 	kOverlap,
 	kWetDry,
 	kWindow,
+	kPlaybackRate,
 	kNumParams
 };
 

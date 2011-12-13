@@ -21,12 +21,15 @@ public:
 	void set_window(int shape);
 	void set_periodic(int on);
 	void set_overlap(float amount);
+	void set_rate(float rate);
+	float get_rate();
 	float get_overlap();
 	int get_periodic();
 private:
 	int n, delay, sample_offset;
 	int duration;
 	float overlap;
+	float playback_rate;
 	bool periodic;
 	int next_start_time, next_start_sample, previous_start_time;
 	float next_location;
