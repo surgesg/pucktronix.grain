@@ -7,11 +7,16 @@
  *
  */
 
-
-#include "PWindow.h"
-
 #ifndef _PGRAIN_
 #define _PGRAIN_
+
+enum {
+	HAMMING = 0,	
+	TRIANGLE,
+	HANN,
+	TUKEY,
+	COSINE
+};
 
 class PGrain{
 public:
@@ -24,6 +29,7 @@ public:
 	bool is_active();
 	void generate_parameters(int duration, int start_sample, int start_time);
 	int get_start_time();
+	void set_window(int shape);
 private:	
 	int buffer_size;
 	int current_sample;

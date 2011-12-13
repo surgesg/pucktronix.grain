@@ -30,12 +30,10 @@ enum
 	kNumStreams,
 	kDelayTime,
 	kRandomAmt,
+	kWetDry,
+	kWindow,
 	kNumParams
 };
-
-
-
-//class Phaser;
 
 class PGranulator : public AudioEffectX
 {
@@ -48,6 +46,7 @@ public:
 	float duration;
 	float delay_time;
 	float random_amount;
+	float wet_dry;
 	int buffer_size_samps;
 	float * internal_buffer;
 	float * working_buffer;
@@ -55,6 +54,7 @@ public:
 	bool buffer_full;
 	int numStreams;
 	int num_grains;
+	int window;
 	PGrainStream * grain_stream;
 	long int time;
 	// Processing

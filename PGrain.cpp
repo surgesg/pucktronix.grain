@@ -8,10 +8,10 @@
  */
 
 #include "PGrain.h"
-#include "PWindow.h"
 #include <math.h>
 #define F_PI 3.14159f
 #define WINDOW_SIZE 2048
+
 PGrain::PGrain(){
 		
 }
@@ -20,7 +20,7 @@ PGrain::PGrain(float * buf, int _buffer_size){
 /* constructor, called once when program is run */
 	buffer = buf;
 	window_function = new float[WINDOW_SIZE];
-	// make cosine window
+	// make default hann window
 	for(int i = 0; i < WINDOW_SIZE; i++)
 		window_function[i] = 0.5 * (1 - cos((2 * F_PI * i) / (WINDOW_SIZE - 1)));
 	current_sample = 0;
@@ -30,6 +30,27 @@ PGrain::PGrain(float * buf, int _buffer_size){
 PGrain::~PGrain(){
 	delete []buffer;
 	delete window_function;
+}
+
+void PGrain::set_window(int shape){
+	switch(shape){
+		case HAMMING:
+			for(int i = 0; i < WINDOW_SIZE; i++)
+				window_function[i] = 0.54 - 0.46 * cos((2.f * F_PI * i) / (WINDOW_SIZE - 1.f)); // some noise here
+			break;
+		case TRIANGLE:
+			for(int i = 0; i < WINDOW_SIZE; i++)
+				window_function[i] = (2.f / (WINDOW_SIZE - 1)) * (((WINDOW_SIZE - 1) / 2.f) - fabs(i - ((WINDOW_SIZE - 1) / 2.f)));
+			break;
+		case HANN:
+			for(int i = 0; i < WINDOW_SIZE; i++)
+				window_function[i] = 0.5 * (1 - cos((2 * F_PI * i) / (WINDOW_SIZE - 1)));
+			break;
+		case TUKEY:
+			break;
+		case COSINE:
+			break;
+	}
 }
 
 void PGrain::init(float * buf, int _buffer_size){

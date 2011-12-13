@@ -30,9 +30,19 @@ PGrainStream::~PGrainStream(){
 	delete [] input_buffer;
 }
 
-float PGrainStream::synthesize(int write_ptr, int duration, int d_time){ // uses write_ptr to enforce no overlap
-	float output_sample = 0;
+void PGrainStream::set_parameters(int _duration, int d_time){
 	delay = d_time;
+	duration = _duration;
+}
+
+void PGrainStream::set_window(int shape){
+	for(int i = 0; i < max_grains; i++){
+		grains[i].set_window(shape);	
+	}
+}
+
+float PGrainStream::synthesize(int write_ptr){ // uses write_ptr to enforce no overlap
+	float output_sample = 0;
 	for(int g = 0; g < max_grains; g++){
 		// check for inactive grains, and if inactive, allocate them for the future	
 		if(!grains[g].is_active()){ // if grain is inactive, set the params and set it active

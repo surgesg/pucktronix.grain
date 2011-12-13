@@ -14,7 +14,7 @@
 #include "PGrainStream.h"
 #include <math.h>
 #include <stdlib.h>
-#include "PGrainStream.h"
+#include "PGrain.h"
 
 //-------------------------------------------------------------------------------------------------------
 AudioEffect* createEffectInstance (audioMasterCallback audioMaster)
@@ -32,13 +32,14 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	canProcessReplacing ();	// supports replacing output
 	canDoubleReplacing ();	// supports double precision processing
 
-	SR = 48000;
+	SR = getSampleRate();
 	
 	vst_strncpy (programName, "Default", kVstMaxProgNameLen);	// default program name
 	
 	duration = 40;
 	delay_time = 40;
 	random_amount = 1;
+	wet_dry = 0.5;
 	
 	buffer_size_samps = SR * 4.f;
 	internal_buffer = new float[buffer_size_samps]; // input delay line buffer
@@ -50,6 +51,7 @@ PGranulator::PGranulator (audioMasterCallback audioMaster)
 	numStreams = 1;
 	grain_stream = new PGrainStream(internal_buffer, buffer_size_samps, 150);
 	time = 0;
+	window = HANN;
 	
 //	editor = new PGranulatorEditor(this);
 }
@@ -78,10 +80,12 @@ void PGranulator::setParameter (VstInt32 index, float value)
 {
 	switch (index){
 		case kDuration:
-			duration = value * 2000.f;
+			duration = value * 200.f;
+			grain_stream->set_parameters(duration * (SR / 1000), delay_time * (SR / 1000));
 			break;
 		case kDelayTime:
 			delay_time = 1 + value * 2000.f;
+			grain_stream->set_parameters(duration * (SR / 1000), delay_time * (SR / 1000));
 			break;
 		case kRandomAmt:
 			random_amount = value;
@@ -89,6 +93,30 @@ void PGranulator::setParameter (VstInt32 index, float value)
 		case kNumStreams:
 			numStreams = (int)(value * 8);
 			break;
+		case kWetDry:
+			wet_dry = value;
+			break;
+		case kWindow:
+			window = (int)(value * 5);
+			switch(window){
+				case 0:
+					grain_stream->set_window(HAMMING);
+					break;
+				case 1:
+					grain_stream->set_window(TRIANGLE);
+					break;
+				case 2:
+					grain_stream->set_window(HANN);
+					break;
+				case 3:
+					grain_stream->set_window(TUKEY);
+					break;
+				case 4:
+					grain_stream->set_window(COSINE);
+					break;
+			}		
+			break;
+			
 	}
 	//((AEffGUIEditor*)editor)->setParameter (index, value);
 }
@@ -97,7 +125,7 @@ float PGranulator::getParameter (VstInt32 index)
 {
 	switch (index){
 		case kDuration:
-			return duration / 2000.f;	
+			return duration / 200.f;	
 			break;
 		case kDelayTime:
 			return delay_time / 2000.f;
@@ -107,6 +135,12 @@ float PGranulator::getParameter (VstInt32 index)
 			break;
 		case kNumStreams:
 			return numStreams / 8.f;
+			break;
+		case kWetDry:
+			return wet_dry;
+			break;
+		case kWindow:
+			return window / 5.f;
 			break;
 	}
 }
@@ -127,6 +161,12 @@ void PGranulator::getParameterName (VstInt32 index, char* label)
 		case kNumStreams:
 			vst_strncpy (label, "Number of Streams", kVstMaxParamStrLen);
 			break;
+		case kWetDry:
+			vst_strncpy (label, "Wet/Dry Mix", kVstMaxParamStrLen);
+			break;
+		case kWindow:
+			vst_strncpy (label, "Window", kVstMaxParamStrLen);
+			break;
 	}
 }
 
@@ -146,6 +186,12 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 		case kNumStreams:
 			float2string(numStreams, text, kVstMaxParamStrLen);	
 			break;
+		case kWetDry:
+			float2string(wet_dry * 100, text, kVstMaxParamStrLen);	
+			break;
+		case kWindow:
+			float2string(window, text, kVstMaxParamStrLen);
+			break;
 	}
 }
 
@@ -164,6 +210,12 @@ void PGranulator::getParameterLabel (VstInt32 index, char* label)
 			break;
 		case kNumStreams:
 			vst_strncpy (label, "streams", kVstMaxParamStrLen);
+			break;
+		case kWetDry:
+			vst_strncpy (label, "%", kVstMaxParamStrLen);
+			break;
+		case kWindow:
+			vst_strncpy (label, "window", kVstMaxParamStrLen);
 			break;
 	}
 }
@@ -205,21 +257,19 @@ void PGranulator::processReplacing (float** inputs, float** outputs, VstInt32 sa
     {
 		internal_buffer[write_ptr] = in1[i];
 		write_ptr++;
-		if(write_ptr >= buffer_size_samps / 2){ // wrap
+		if(write_ptr >= buffer_size_samps / 2){ // can this be removed?
 			buffer_full = true;
 		}
-		if(write_ptr >= buffer_size_samps){
+		if(write_ptr >= buffer_size_samps){ // wrap
 			write_ptr = 0;
 		}
 	}
 	if(buffer_full){ // somehow constrain sample writing to areas whch won't be heard in the next sampleFrame... probably not possible 
 		for(int i = 0; i < sampleFrames; i++){ 	// copy output buffer to output
-			(*out1++) = grain_stream->synthesize(write_ptr, duration * (SR / 1000), delay_time * (SR / 1000)); // move the delay/duration conversions out of process loop 
+			(*out1++) = (grain_stream->synthesize(write_ptr) * (1 - wet_dry)) + (wet_dry * in1[i]); // move the delay/duration conversions out of process loop 
 			time++;
 		}	
 	}
-	
-
 }
 
 //-----------------------------------------------------------------------------------------
