@@ -24,6 +24,8 @@ PGrainStream::PGrainStream(float * input, int size, int m_grains){
 	}
 	previous_start_time = 0;
 	delay = 48000; // 1 second delay
+	periodic = true;
+	overlap = 2; // from 1.01 to 2
 }
 
 PGrainStream::~PGrainStream(){
@@ -41,12 +43,32 @@ void PGrainStream::set_window(int shape){
 	}
 }
 
+void PGrainStream::set_periodic(int on){
+	periodic = on;	
+}
+
+int PGrainStream::get_periodic(){
+	return periodic;
+}
+
+void PGrainStream::set_overlap(float amount){
+	overlap = amount;	
+}
+
+float PGrainStream::get_overlap(){
+	return overlap;	
+}
+
 stereo_sample * PGrainStream::synthesize(int write_ptr){ // uses write_ptr to enforce no overlap
 	output_sample.left = output_sample.right = 0.f;
 	for(int g = 0; g < max_grains; g++){
 		// check for inactive grains, and if inactive, allocate them for the future	
 		if(!grains[g].is_active()){ // if grain is inactive, set the params and set it active
-			next_start_time = delay + n + (rand() % (delay * 4)); /// look at this later too...... placeholder
+			if(periodic){
+				next_start_time = n + (duration * overlap); // add an overlap param?  
+			} else {
+				next_start_time = delay + n + (rand() % (delay * 4)); /// look at this later too...... placeholder
+			}
 			sample_offset = next_start_time - n; // account for write_ptr travel before grain becomes active
 			next_start_sample = ((write_ptr + delay + sample_offset) + (rand() % delay)) % buffer_size; 
 			next_location = (float)(rand() % 100) / 100.f;

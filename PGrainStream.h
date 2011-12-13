@@ -19,9 +19,15 @@ public:
 	stereo_sample * synthesize(int write_ptr);
 	void set_parameters(int duration, int d_time);
 	void set_window(int shape);
+	void set_periodic(int on);
+	void set_overlap(float amount);
+	float get_overlap();
+	int get_periodic();
 private:
 	int n, delay, sample_offset;
 	int duration;
+	float overlap;
+	bool periodic;
 	int next_start_time, next_start_sample, previous_start_time;
 	float next_location;
 	int max_grains;

@@ -28,6 +28,8 @@ enum
 	// Parameters Tags
 	kDuration = 0,
 	kDelayTime,
+	kPeriodic,
+	kOverlap,
 	kWetDry,
 	kWindow,
 	kNumParams

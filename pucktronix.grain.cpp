@@ -91,6 +91,12 @@ void PGranulator::setParameter (VstInt32 index, float value)
 		case kWetDry:
 			wet_dry = value;
 			break;
+		case kPeriodic:
+			grain_stream->set_periodic((int)value);
+			break;
+		case kOverlap:
+			grain_stream->set_overlap(1.01f + value);
+			break;
 		case kWindow:
 			window = (int)(value * 4);
 			switch(window){
@@ -128,6 +134,12 @@ float PGranulator::getParameter (VstInt32 index)
 		case kWetDry:
 			return wet_dry;
 			break;
+		case kPeriodic:
+			return grain_stream->get_periodic();
+			break;
+		case kOverlap:
+			return grain_stream->get_overlap() - 1.01;
+			break;
 		case kWindow:
 			return window / 4.f;
 			break;
@@ -147,6 +159,12 @@ void PGranulator::getParameterName (VstInt32 index, char* label)
 		case kWetDry:
 			vst_strncpy (label, "Wet/Dry Mix", kVstMaxParamStrLen);
 			break;
+		case kPeriodic:
+			vst_strncpy (label, "Periodic", kVstMaxParamStrLen);
+			break;	
+		case kOverlap:
+			vst_strncpy (label, "Overlap", kVstMaxParamStrLen);
+			break;	
 		case kWindow:
 			vst_strncpy (label, "Window", kVstMaxParamStrLen);
 			break;
@@ -165,6 +183,12 @@ void PGranulator::getParameterDisplay (VstInt32 index, char* text)
 			break;
 		case kWetDry:
 			float2string(wet_dry * 100, text, kVstMaxParamStrLen);	
+			break;
+		case kPeriodic:
+			int2string(grain_stream->get_periodic(), text, kVstMaxParamStrLen);
+			break;
+		case kOverlap:
+			float2string((grain_stream->get_overlap() - 1.01) * 100.f, text, kVstMaxParamStrLen);	
 			break;
 		case kWindow:
 			switch(window){
@@ -199,6 +223,12 @@ void PGranulator::getParameterLabel (VstInt32 index, char* label)
 			vst_strncpy (label, "ms", kVstMaxParamStrLen);
 			break;
 		case kWetDry:
+			vst_strncpy (label, "%", kVstMaxParamStrLen);
+			break;
+		case kPeriodic:
+			vst_strncpy (label, "On/Off", kVstMaxParamStrLen);
+			break;
+		case kOverlap:
 			vst_strncpy (label, "%", kVstMaxParamStrLen);
 			break;
 		case kWindow:
