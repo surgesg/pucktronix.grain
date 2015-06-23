@@ -119,7 +119,7 @@ void PGranulator::setParameter (VstInt32 index, float value)
 			}		
 			break;
 		case kPlaybackRate:
-			grain_stream->set_rate(value * 1.5 + 0.5); // range from 0.5 - 2.0
+			grain_stream->set_rate((value - 0.5) * 4.f); // 2.0)1.5 + 0.5); // range from 0.5 - 2.0
 			break;
 			
 	}
@@ -148,7 +148,7 @@ float PGranulator::getParameter (VstInt32 index)
 			return window / 4.f;
 			break;
 		case kPlaybackRate:
-			return (grain_stream->get_rate() - 0.5) / 1.5;
+			return (grain_stream->get_rate() / 4.f) + 0.5;
 			break;
 	}
 }
